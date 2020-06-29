@@ -20,6 +20,7 @@ func GetCacheMiddle(cache Cache, failedRespond func(c *gin.Context), expire time
 			if ok {
 				c.Writer.WriteHeader(200)
 				c.Writer.Write(value)
+				c.Writer.Header().Add("Content-Type", "application/json")
 				return nil, nil
 			}
 			cacheWriter := &cachedWriter{
@@ -39,6 +40,7 @@ func GetCacheMiddle(cache Cache, failedRespond func(c *gin.Context), expire time
 		} else if !c.Writer.Written() {
 			c.Writer.WriteHeader(200)
 			c.Writer.Write(body.([]byte))
+			c.Writer.Header().Add("Content-Type", "application/json")
 		}
 		c.Abort()
 		return
