@@ -1,4 +1,4 @@
-package gin_cache_middle
+package gincachemiddle
 
 import (
 	"time"
