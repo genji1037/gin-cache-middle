@@ -32,7 +32,7 @@ func GetCacheMiddle(cache Cache, failedRespond func(c *gin.Context), expire time
 			failedRespond(c)
 		} else {
 			bodyBs, ok := body.([]byte)
-			if ok {
+			if ok && !c.Writer.Written() {
 				c.Writer.WriteHeader(200)
 				c.Writer.Header().Add("Content-Type", "application/json")
 				_, err := c.Writer.Write(bodyBs)
