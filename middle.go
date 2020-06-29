@@ -1,6 +1,7 @@
 package gincachemiddle
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -31,16 +32,19 @@ func GetCacheMiddle(cache Cache, failedRespond func(c *gin.Context), expire time
 			}
 			c.Writer = cacheWriter
 			c.Next()
-
+			fmt.Println(string(cacheWriter.Body))
 			return cacheWriter.Body, nil
 		})
 		if err != nil {
 			log.Printf("cache middle failed: %s\n", err.Error())
 			failedRespond(c)
-		} else if !c.Writer.Written() {
-			c.Writer.WriteHeader(200)
-			c.Writer.Header().Add("Content-Type", "application/json")
-			c.Writer.Write(body.([]byte))
+		} else {
+			bodyBs, ok := body.([]byte)
+			if ok {
+				c.Writer.WriteHeader(200)
+				c.Writer.Header().Add("Content-Type", "application/json")
+				c.Writer.Write(bodyBs)
+			}
 		}
 		c.Abort()
 		return
