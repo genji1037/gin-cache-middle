@@ -1,14 +1,10 @@
 package gincachemiddle
 
 import (
-	"fmt"
-	"time"
-)
-
-import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang/groupcache/singleflight"
 	"log"
+	"time"
 )
 
 var g singleflight.Group
@@ -19,10 +15,7 @@ func GetCacheMiddle(cache Cache, failedRespond func(c *gin.Context), expire time
 		body, err := g.Do(url, func() (i interface{}, e error) {
 			value, ok := cache.Get(url)
 			if ok {
-				c.Writer.WriteHeader(200)
-				c.Writer.Header().Add("Content-Type", "application/json")
-				c.Writer.Write(value)
-				return nil, nil
+				return value, nil
 			}
 			cacheWriter := &cachedWriter{
 				ResponseWriter: c.Writer,
@@ -32,7 +25,6 @@ func GetCacheMiddle(cache Cache, failedRespond func(c *gin.Context), expire time
 			}
 			c.Writer = cacheWriter
 			c.Next()
-			fmt.Println(string(cacheWriter.Body))
 			return cacheWriter.Body, nil
 		})
 		if err != nil {
@@ -43,7 +35,10 @@ func GetCacheMiddle(cache Cache, failedRespond func(c *gin.Context), expire time
 			if ok {
 				c.Writer.WriteHeader(200)
 				c.Writer.Header().Add("Content-Type", "application/json")
-				c.Writer.Write(bodyBs)
+				_, err := c.Writer.Write(bodyBs)
+				if err != nil {
+					log.Printf("gin cahche write failed: %s", err.Error())
+				}
 			}
 		}
 		c.Abort()
